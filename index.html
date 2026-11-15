@@ -1,0 +1,1445 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>词根炼金室 · CET-4 词汇游戏</title>
+<style>
+  /* ============ 基础 ============ */
+  *, *::before, *::after { box-sizing: border-box; }
+  :root {
+    --bg: #0b0910;
+    --bg-2: #161122;
+    --ink: #efe7d8;
+    --ink-2: #cfc3ad;
+    --dim: #8d8272;
+    --gold: #e3b661;
+    --gold-2: #f7e0a6;
+    --gold-deep: #a97c2f;
+    --line: rgba(227, 182, 97, 0.20);
+    --panel: rgba(255, 255, 255, 0.035);
+    --panel-2: rgba(255, 255, 255, 0.06);
+    --ok: #7fd6a0;
+    --bad: #e3776f;
+    --r: 14px;
+    --font-ui: "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", system-ui, -apple-system, sans-serif;
+    --font-en: Georgia, "Times New Roman", "Songti SC", serif;
+  }
+  html, body { height: 100%; overflow-x: hidden; }
+  body {
+    margin: 0;
+    background:
+      radial-gradient(1100px 620px at 18% -12%, rgba(120, 84, 190, 0.28), transparent 62%),
+      radial-gradient(900px 560px at 92% 8%, rgba(190, 130, 60, 0.16), transparent 60%),
+      radial-gradient(800px 700px at 50% 118%, rgba(60, 40, 110, 0.35), transparent 65%),
+      var(--bg);
+    color: var(--ink);
+    font-family: var(--font-ui);
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+  body::before {
+    /* 极淡星尘 */
+    content: "";
+    position: fixed; inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 12% 22%, rgba(255,255,255,.30), transparent),
+      radial-gradient(1px 1px at 68% 14%, rgba(255,255,255,.22), transparent),
+      radial-gradient(1.4px 1.4px at 84% 62%, rgba(255,220,160,.28), transparent),
+      radial-gradient(1px 1px at 32% 78%, rgba(255,255,255,.18), transparent),
+      radial-gradient(1px 1px at 52% 44%, rgba(255,255,255,.14), transparent),
+      radial-gradient(1px 1px at 92% 32%, rgba(255,255,255,.16), transparent);
+    pointer-events: none;
+    z-index: 0;
+  }
+  button { font-family: inherit; color: inherit; cursor: pointer; border: none; background: none; }
+  button:disabled { cursor: default; }
+
+  /* ============ 顶栏 ============ */
+  .topbar {
+    position: relative; z-index: 3;
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px clamp(14px, 3vw, 28px);
+    border-bottom: 1px solid var(--line);
+    backdrop-filter: blur(6px);
+  }
+  .brand {
+    font-family: var(--font-en);
+    font-size: 19px; letter-spacing: .14em;
+    color: var(--gold-2);
+    text-shadow: 0 0 26px rgba(227, 182, 97, .35);
+    display: flex; align-items: baseline; gap: 10px;
+  }
+  .brand small {
+    font-family: var(--font-ui); font-size: 11px; letter-spacing: .06em;
+    color: var(--dim); text-shadow: none;
+  }
+  .topbar .spacer { flex: 1; }
+  .icon-btn {
+    font-size: 12px; letter-spacing: .08em; color: var(--ink-2);
+    border: 1px solid var(--line); border-radius: 999px;
+    padding: 7px 14px; transition: .18s; background: var(--panel);
+  }
+  .icon-btn:hover { color: var(--gold-2); border-color: rgba(227,182,97,.5); background: rgba(227,182,97,.10); }
+
+  /* ============ 屏幕 ============ */
+  main { position: relative; z-index: 2; flex: 1; display: block; padding: clamp(18px, 3vw, 34px) clamp(14px, 3vw, 28px) 40px; }
+  .screen { display: none; width: 100%; max-width: 1080px; margin: 0 auto; min-width: 0; }
+  .screen.active { display: block; animation: fadeUp .38s cubic-bezier(.2,.7,.3,1); }
+  /* 内容较少的页面垂直居中，避免大片空白 */
+  #s-play.active, #s-reveal.active, #s-quiz.active, #s-result.active {
+    display: flex; flex-direction: column; justify-content: center;
+    min-height: calc(100dvh - 190px);
+  }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+  /* ============ 首页 ============ */
+  .hero { text-align: center; padding: 18px 0 26px; }
+  .hero h1 {
+    margin: 0 0 10px;
+    font-family: var(--font-en);
+    font-size: clamp(30px, 5.4vw, 50px);
+    letter-spacing: .1em;
+    color: var(--gold-2);
+    text-shadow: 0 0 40px rgba(227,182,97,.30);
+  }
+  .hero p { margin: 0 auto; max-width: 640px; color: var(--ink-2); font-size: 14px; line-height: 1.9; }
+  .hero .muted { color: var(--dim); font-size: 13px; margin-top: 4px; }
+  .formula { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin: 22px 0 14px; }
+  .fx {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 11px 17px; border: 1px solid var(--line); border-radius: 12px;
+    background: linear-gradient(160deg, rgba(255,255,255,.06), rgba(255,255,255,.015));
+    font-size: 13px;
+  }
+  .fx .m { display: inline-flex; align-items: baseline; gap: 5px; }
+  .fx i { font-family: var(--font-en); font-style: normal; font-size: 15px; color: var(--gold-2); letter-spacing: .01em; }
+  .fx em { font-style: normal; font-size: 10.5px; color: var(--dim); white-space: nowrap; }
+  .fx .op { color: rgba(255,255,255,.28); }
+  .fx b { color: var(--gold); font-size: 14px; font-weight: 600; }
+  .steps { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 22px 0 6px; }
+  .step { border: 1px solid var(--line); background: var(--panel); border-radius: 999px; padding: 7px 15px; font-size: 12.5px; color: var(--ink-2); }
+  .step b { color: var(--gold); font-weight: 600; }
+
+  .sect-title { display: flex; align-items: center; gap: 12px; margin: 26px 0 14px; color: var(--dim); font-size: 12px; letter-spacing: .18em; }
+  .sect-title::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, var(--line), transparent); }
+
+  .chapters { display: grid; grid-template-columns: repeat(auto-fill, minmax(186px, 1fr)); gap: 14px; }
+  .chapter {
+    position: relative; text-align: left; overflow: hidden;
+    border: 1px solid var(--line); border-radius: var(--r);
+    background: linear-gradient(160deg, rgba(255,255,255,.055), rgba(255,255,255,.02));
+    padding: 16px 17px 15px; transition: .22s;
+  }
+  .chapter:hover { transform: translateY(-3px); border-color: rgba(227,182,97,.55); box-shadow: 0 14px 40px -18px rgba(227,182,97,.5); }
+  .chapter .root { font-family: var(--font-en); font-size: 21px; color: var(--gold-2); letter-spacing: .04em; white-space: nowrap; }
+  .chapter .root em { font-family: var(--font-ui); font-style: normal; font-size: 12px; color: var(--ink-2); margin-left: 8px; letter-spacing: .04em; }
+  .chapter .sub { color: var(--dim); font-size: 12px; margin-top: 6px; letter-spacing: .05em; }
+  .bar { height: 4px; border-radius: 99px; background: rgba(255,255,255,.09); margin-top: 13px; overflow: hidden; }
+  .bar i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--gold-deep), var(--gold-2)); transition: width .5s; }
+
+  /* ============ 游戏页 ============ */
+  .hud { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; font-size: 12px; color: var(--dim); letter-spacing: .06em; }
+  .hud .fam { font-family: var(--font-en); font-size: 14px; color: var(--gold); letter-spacing: .08em; }
+  .hud .sep { opacity: .35; }
+  .hud .score { color: var(--ink-2); }
+  .hud .score b { color: var(--gold-2); font-weight: 600; }
+  .hud .streak { color: var(--gold); }
+  .hud .spacer { flex: 1; }
+  .pips { display: flex; gap: 5px; }
+  .pip { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.16); }
+  .pip.on { background: var(--gold); box-shadow: 0 0 10px rgba(227,182,97,.8); }
+  .pip.now { background: var(--gold-2); transform: scale(1.35); }
+
+  .play-stack { width: 100%; max-width: 780px; margin: 0 auto; }
+
+  .target {
+    border: 1px solid var(--line); border-radius: 18px;
+    background: linear-gradient(165deg, rgba(255,255,255,.06), rgba(255,255,255,.015));
+    padding: 22px 22px 20px; position: relative; overflow: hidden;
+  }
+  .target .wm {
+    position: absolute; right: 10px; bottom: -18px;
+    font-family: var(--font-en); font-size: clamp(64px, 9vw, 104px); line-height: 1;
+    color: rgba(227,182,97,.055); letter-spacing: .01em;
+    pointer-events: none; user-select: none; white-space: nowrap;
+  }
+  .target::after {
+    content: ""; position: absolute; inset: -40% -10% auto auto; width: 220px; height: 220px;
+    background: radial-gradient(circle, rgba(227,182,97,.16), transparent 70%); pointer-events: none;
+  }
+  .target .kicker { font-size: 11px; letter-spacing: .22em; color: var(--dim); }
+  .target .cn { font-size: clamp(24px, 3.4vw, 32px); font-weight: 600; line-height: 1.4; margin: 12px 0 4px; color: var(--ink); }
+  .target .meta { display: flex; gap: 8px; align-items: center; margin-top: 10px; }
+  .tag { font-size: 11px; letter-spacing: .06em; padding: 3px 9px; border-radius: 99px; border: 1px solid var(--line); color: var(--dim); }
+  .tag.pos { color: var(--gold); border-color: rgba(227,182,97,.35); }
+
+  .hearts { display: flex; gap: 7px; margin-top: 16px; align-items: center; }
+  .heart { width: 15px; height: 15px; border-radius: 50%; border: 1.5px solid rgba(227,182,97,.55); box-shadow: inset 0 0 8px rgba(227,182,97,.35); transition: .3s; }
+  .heart.gone { border-color: rgba(255,255,255,.18); box-shadow: none; background: rgba(255,255,255,.05); }
+  .hearts span { font-size: 11px; color: var(--dim); letter-spacing: .08em; margin-left: 4px; }
+
+  .forge { margin-top: 22px; }
+  .forge-label { font-size: 11px; letter-spacing: .22em; color: var(--dim); margin-bottom: 10px; }
+  .slots { display: flex; gap: 9px; flex-wrap: wrap; }
+  .slot {
+    min-width: 84px; height: 68px; flex: 1 1 84px; max-width: 190px;
+    border: 1.5px dashed rgba(227,182,97,.30); border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,.02); transition: .2s;
+    font-family: var(--font-en); font-size: 20px; color: var(--gold-2);
+    letter-spacing: .02em; position: relative;
+  }
+  .slot.empty::before { content: "＋"; color: rgba(255,255,255,.13); font-size: 18px; font-family: var(--font-ui); }
+  .slot.filled { border-style: solid; border-color: rgba(227,182,97,.55); background: linear-gradient(180deg, rgba(227,182,97,.16), rgba(227,182,97,.05)); box-shadow: 0 0 22px -6px rgba(227,182,97,.6), inset 0 1px 0 rgba(255,255,255,.12); cursor: pointer; }
+  .slot.filled:hover { border-color: var(--bad); color: var(--bad); }
+  .slots.shake { animation: shake .38s; }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-7px)} 40%{transform:translateX(6px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(3px)} }
+
+  .forge-actions { display: flex; gap: 10px; margin-top: 16px; align-items: center; }
+  .btn {
+    border-radius: 11px; padding: 11px 22px; font-size: 13.5px; letter-spacing: .12em;
+    border: 1px solid var(--line); background: var(--panel-2); color: var(--ink-2); transition: .2s;
+  }
+  .btn:hover { border-color: rgba(227,182,97,.5); color: var(--gold-2); }
+  .btn.primary {
+    background: linear-gradient(180deg, #f2d79a, #d9a94f 55%, #b9862f);
+    color: #2a1c06; border-color: #f2d79a; font-weight: 700;
+    box-shadow: 0 10px 30px -12px rgba(240, 200, 120, .85);
+  }
+  .btn.primary:hover { filter: brightness(1.08); transform: translateY(-1px); }
+  .btn.primary:active { transform: translateY(1px); }
+  .forge-msg { min-height: 20px; margin-top: 12px; font-size: 12.5px; letter-spacing: .04em; color: var(--bad); }
+  .forge-msg.good { color: var(--ok); }
+
+  /* ============ 零件托盘 ============ */
+  .tray-head { display: flex; align-items: baseline; gap: 8px; margin: 0 0 10px; flex-wrap: wrap; }
+  .tray-head .t { font-size: 11px; letter-spacing: .22em; color: var(--dim); }
+  .tray-head .hint { font-size: 11px; color: rgba(255,255,255,.22); }
+  .tray-panel { margin-top: 22px; padding-top: 18px; border-top: 1px solid rgba(255,255,255,.06); }
+  .tray { display: grid; grid-template-columns: repeat(auto-fill, minmax(126px, 1fr)); gap: 9px; }
+  .chip {
+    position: relative; text-align: center; padding: 13px 6px 10px;
+    border-radius: 12px; border: 1px solid rgba(227,182,97,.24);
+    background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.018));
+    transition: .18s; overflow: hidden;
+  }
+  .chip::after { content: ""; position: absolute; inset: 0; background: linear-gradient(120deg, transparent 40%, rgba(255,255,255,.14) 50%, transparent 60%); opacity: 0; transition: .3s; }
+  .chip:hover:not(:disabled) { transform: translateY(-2px); border-color: rgba(227,182,97,.7); box-shadow: 0 10px 26px -14px rgba(227,182,97,.9); }
+  .chip:hover:not(:disabled)::after { opacity: 1; }
+  .chip .lab { display: block; font-family: var(--font-en); font-size: 17px; color: var(--gold-2); letter-spacing: .01em; }
+  .chip .mean { display: block; font-size: 10.5px; color: var(--dim); margin-top: 5px; letter-spacing: .03em; line-height: 1.3; }
+  .chip:disabled { opacity: .3; transform: none; border-style: dashed; }
+  .chip.decoy .lab { color: #b9a9c9; }
+  .family-note {
+    margin-top: 20px; font-size: 12px; line-height: 1.9; color: var(--dim);
+    border-left: 2px solid rgba(255,255,255,.10); padding-left: 12px;
+  }
+  .family-note b { color: var(--gold); font-weight: 500; }
+
+  /* ============ 揭晓卡 ============ */
+  .card-wrap { display: flex; justify-content: center; padding-top: 8px; }
+  .wordcard {
+    width: min(660px, 100%);
+    border: 1px solid rgba(227,182,97,.30); border-radius: 20px;
+    background: linear-gradient(170deg, rgba(255,255,255,.075), rgba(255,255,255,.02) 60%);
+    padding: clamp(22px, 4vw, 34px);
+    position: relative; overflow: hidden;
+    animation: cardIn .55s cubic-bezier(.2,.8,.25,1);
+  }
+  @keyframes cardIn { from { opacity: 0; transform: translateY(18px) scale(.97); } to { opacity: 1; transform: none; } }
+  .wordcard::before {
+    content: ""; position: absolute; top: -60%; left: -60%; width: 60%; height: 220%;
+    background: linear-gradient(100deg, transparent, rgba(255,235,190,.10), transparent);
+    transform: rotate(8deg); opacity: 0;
+    animation: sweep 1.3s ease-out forwards;
+  }
+  @keyframes sweep {
+    0% { left: -60%; opacity: 0; }
+    12% { opacity: 1; }
+    100% { left: 130%; opacity: 0; }
+  }
+  .wc-badge { font-size: 11px; letter-spacing: .2em; color: var(--ok); margin-bottom: 12px; }
+  .wc-badge.fail { color: var(--bad); }
+  .wc-word { font-family: var(--font-en); font-size: clamp(36px, 7vw, 54px); letter-spacing: .02em; color: var(--gold-2); line-height: 1.1; text-shadow: 0 0 40px rgba(227,182,97,.35); }
+  .wc-ipa { color: var(--dim); font-size: 14px; margin-top: 8px; font-family: var(--font-en); }
+  .wc-note {
+    display: none; margin-top: 12px; font-size: 12.5px; line-height: 1.75;
+    color: var(--gold); background: rgba(227,182,97,.09);
+    border: 1px dashed rgba(227,182,97,.35); border-radius: 9px; padding: 9px 12px;
+  }
+  .wc-note.on { display: block; }
+  .wc-cn { font-size: 19px; margin-top: 14px; color: var(--ink); }
+  .wc-parts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+  .wcp { font-family: var(--font-en); font-size: 14px; color: var(--gold); border: 1px solid rgba(227,182,97,.32); border-radius: 8px; padding: 5px 10px; background: rgba(227,182,97,.07); }
+  .wcp i { font-family: var(--font-ui); font-style: normal; font-size: 10.5px; color: var(--dim); margin-left: 6px; }
+  .wc-memo { margin-top: 18px; font-size: 13.5px; line-height: 1.85; color: var(--ink-2); border-left: 2px solid rgba(227,182,97,.4); padding-left: 13px; }
+  .wc-ex { margin-top: 16px; padding: 15px 16px; border-radius: 12px; background: rgba(0,0,0,.25); border: 1px solid rgba(255,255,255,.05); }
+  .wc-ex .en { font-family: var(--font-en); font-size: 15.5px; line-height: 1.7; color: var(--ink); }
+  .wc-ex .en b { color: var(--gold-2); font-weight: 600; }
+  .wc-ex .cn { font-size: 12.5px; color: var(--dim); margin-top: 6px; }
+  .wc-actions { display: flex; justify-content: flex-end; margin-top: 24px; }
+
+  /* ============ 答辩 ============ */
+  .quiz-wrap { width: 100%; max-width: 620px; margin: 0 auto; }
+  .quiz-head { display: flex; justify-content: space-between; font-size: 12px; color: var(--dim); letter-spacing: .12em; margin-bottom: 18px; }
+  .quiz-q { font-size: 22px; line-height: 1.6; margin-bottom: 6px; }
+  .quiz-q small { display: block; font-size: 11px; color: var(--dim); letter-spacing: .2em; margin-bottom: 10px; }
+  .quiz-q .en { font-family: var(--font-en); color: var(--gold-2); font-size: 30px; }
+  .opts { display: grid; gap: 10px; margin-top: 22px; }
+  .opt {
+    text-align: left; padding: 15px 18px; border-radius: 12px; font-size: 15px;
+    border: 1px solid var(--line); background: var(--panel);
+    display: flex; align-items: center; gap: 12px; transition: .16s;
+  }
+  .opt .idx { font-family: var(--font-en); font-size: 12px; color: var(--dim); width: 16px; }
+  .opt .en { font-family: var(--font-en); font-size: 19px; color: var(--ink); }
+  .opt:hover:not(.done) { border-color: rgba(227,182,97,.6); background: rgba(227,182,97,.08); }
+  .opt.right { border-color: var(--ok); background: rgba(127,214,160,.13); }
+  .opt.wrong { border-color: var(--bad); background: rgba(227,119,111,.12); }
+  .opt.done { cursor: default; }
+
+  /* ============ 结算 ============ */
+  .result { text-align: center; max-width: 560px; margin: 20px auto 0; }
+  .result h2 { font-family: var(--font-en); font-size: 32px; color: var(--gold-2); letter-spacing: .1em; margin: 0 0 6px; }
+  .result .lead { color: var(--dim); font-size: 13px; letter-spacing: .1em; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 26px 0; }
+  .stat { border: 1px solid var(--line); border-radius: 14px; padding: 16px 8px; background: var(--panel); }
+  .stat b { display: block; font-size: 26px; color: var(--gold-2); font-family: var(--font-en); letter-spacing: .02em; }
+  .stat span { font-size: 11px; color: var(--dim); letter-spacing: .12em; }
+  .result-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 6px; }
+
+  /* ============ 图鉴 ============ */
+  .codex-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+  .codex-card { border: 1px solid var(--line); border-radius: 14px; background: var(--panel); padding: 15px 16px; }
+  .codex-card .cr { font-family: var(--font-en); font-size: 20px; color: var(--gold-2); }
+  .codex-card .cr em { font-family: var(--font-ui); font-style: normal; font-size: 12px; color: var(--dim); margin-left: 8px; }
+  .codex-list { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 7px; }
+  .codex-list li { display: flex; justify-content: space-between; gap: 10px; font-size: 12.5px; color: var(--ink-2); border-bottom: 1px dashed rgba(255,255,255,.06); padding-bottom: 6px; }
+  .codex-list li:last-child { border-bottom: none; }
+  .codex-list .w { font-family: var(--font-en); font-size: 14px; color: var(--ink); }
+  .codex-list li.locked { opacity: .34; }
+  .codex-list li.locked .w { color: var(--dim); letter-spacing: .12em; }
+  .codex-list .m { color: var(--dim); text-align: right; }
+  .back-row { margin-bottom: 18px; }
+
+  /* 粒子 */
+  .spark { position: fixed; width: 5px; height: 5px; border-radius: 50%; background: var(--gold-2); pointer-events: none; z-index: 60; box-shadow: 0 0 10px rgba(255,220,150,.9); }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">Morpheme Forge <small>词根炼金室</small></div>
+  <div class="spacer"></div>
+  <button class="icon-btn" id="btn-codex">图鉴</button>
+  <button class="icon-btn" id="btn-sound" title="音效开关">♪ 开</button>
+</header>
+
+<main>
+  <!-- ============ 首页 ============ -->
+  <section class="screen active" id="s-home">
+    <div class="hero">
+      <h1>拼一个词，记一族词</h1>
+      <p>每个词都是一堆零件拼起来的。同一块 <b style="color:var(--gold)">spect</b>（看），换个前缀就是另一个词。</p>
+      <div class="formula">
+        <span class="fx">
+          <span class="m"><i>in-</i><em>向内</em></span><span class="op">+</span>
+          <span class="m"><i>spect</i><em>看</em></span><span class="op">=</span>
+          <b>检查</b>
+        </span>
+        <span class="fx">
+          <span class="m"><i>pro-</i><em>向前</em></span><span class="op">+</span>
+          <span class="m"><i>spect</i><em>看</em></span><span class="op">=</span>
+          <b>前景</b>
+        </span>
+      </div>
+      <p class="muted">这一局，你不是在背单词 —— 你是在造词。</p>
+      <div class="steps">
+        <div class="step"><b>①</b> 看目标中文意思</div>
+        <div class="step"><b>②</b> 挑前缀 + 词根 + 后缀</div>
+        <div class="step"><b>③</b> 炼成，翻转卡片记住它</div>
+      </div>
+    </div>
+    <div class="sect-title">选择词族</div>
+    <div class="chapters" id="home-chapters"></div>
+  </section>
+
+  <!-- ============ 游戏页 ============ -->
+  <section class="screen" id="s-play">
+    <div class="play-stack">
+      <div class="hud">
+        <span class="fam" id="hud-fam">spect</span>
+        <span class="sep">/</span>
+        <span id="hud-famcn">看</span>
+        <span class="sep">·</span>
+        <span id="hud-prog">1 / 6</span>
+        <span class="spacer"></span>
+        <span class="score">得分 <b id="hud-score">0</b></span>
+        <span class="streak" id="hud-streak"></span>
+        <span class="sep">|</span>
+        <span class="pips" id="hud-pips"></span>
+      </div>
+
+      <div class="target">
+        <div class="wm" id="wm-root">spect</div>
+        <div class="kicker">本炉目标</div>
+        <div class="cn" id="target-cn">检查，视察</div>
+        <div class="meta">
+          <span class="tag pos" id="target-pos">v.</span>
+          <span class="tag" id="target-note">首字母 i</span>
+        </div>
+        <div class="hearts" id="hearts"></div>
+      </div>
+
+      <div class="forge">
+        <div class="forge-label">炼 成 阵</div>
+        <div class="slots" id="slots"></div>
+        <div class="forge-actions">
+          <button class="btn primary" id="btn-cast">炼 成</button>
+          <button class="btn" id="btn-clear">清空</button>
+        </div>
+        <div class="forge-msg" id="forge-msg"></div>
+      </div>
+
+      <div class="tray-panel">
+        <div class="tray-head">
+          <span class="t">零 件 台</span>
+          <span class="hint">点击放入炼成阵 · 再点阵中零件可取回</span>
+        </div>
+        <div class="tray" id="tray"></div>
+      </div>
+
+      <div class="family-note" id="family-note"></div>
+    </div>
+  </section>
+
+  <!-- ============ 揭晓 ============ -->
+  <section class="screen" id="s-reveal">
+    <div class="card-wrap">
+      <div class="wordcard" id="wordcard">
+        <div class="wc-badge" id="wc-badge">炼成成功</div>
+        <div class="wc-word" id="wc-word">inspect</div>
+        <div class="wc-ipa" id="wc-ipa">/ɪnˈspekt/</div>
+        <div class="wc-note" id="wc-note"></div>
+        <div class="wc-cn" id="wc-cn">v. 检查，视察</div>
+        <div class="wc-parts" id="wc-parts"></div>
+        <div class="wc-memo" id="wc-memo"></div>
+        <div class="wc-ex">
+          <div class="en" id="wc-ex"></div>
+          <div class="cn" id="wc-excn"></div>
+        </div>
+        <div class="wc-actions">
+          <button class="btn primary" id="btn-next">下 一 个</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 答辩 ============ -->
+  <section class="screen" id="s-quiz">
+    <div class="quiz-wrap">
+      <div class="quiz-head">
+        <span>词 族 答 辩</span>
+        <span id="quiz-prog">1 / 4</span>
+      </div>
+      <div class="quiz-q" id="quiz-q"></div>
+      <div class="opts" id="quiz-opts"></div>
+    </div>
+  </section>
+
+  <!-- ============ 结算 ============ -->
+  <section class="screen" id="s-result">
+    <div class="result">
+      <h2 id="res-title">词族已成</h2>
+      <div class="lead" id="res-lead">spect ·「看」一族 · 全部铸成</div>
+      <div class="stats">
+        <div class="stat"><b id="res-score">0</b><span>总 得 分</span></div>
+        <div class="stat"><b id="res-cast">0/6</b><span>亲 手 铸 成</span></div>
+        <div class="stat"><b id="res-quiz">0/4</b><span>答 辩 正 确</span></div>
+      </div>
+      <div class="result-actions">
+        <button class="btn primary" id="btn-again">再 来 一 次</button>
+        <button class="btn" id="btn-nextfam">下 一 个 词 族</button>
+        <button class="btn" id="btn-backhome">返 回 目 录</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 图鉴 ============ -->
+  <section class="screen" id="s-codex">
+    <div class="back-row"><button class="btn" id="btn-codex-back">← 返回</button></div>
+    <div class="sect-title">已 收 录 的 词 族</div>
+    <div class="codex-grid" id="codex-grid"></div>
+  </section>
+</main>
+
+<script>
+/* =================================================================
+   数据区：5 个词族 / 30 个 CET-4 高频词
+   parts 的拼接必须严格等于单词本身（有校验脚本）
+   ================================================================= */
+// ===DATA-START===
+const CH = (t, label, m, decoy) => ({ t, label, m, decoy: !!decoy });
+const FAMILIES = [
+  {
+    root: "spect", roman: "specere", cn: "看",
+    blurb: "拉丁语 specere = 看。同样一块「看」，加上不同的方向前缀，就长成了完全不同的一族词。",
+    chips: [
+      CH("in", "in-", "向内"),
+      CH("ex", "ex-", "向外"),
+      CH("re", "re-", "回 / 再"),
+      CH("sus", "sus-", "= sub，向下"),
+      CH("pro", "pro-", "向前"),
+      CH("spect", "spect", "看"),
+      CH("ator", "-ator", "做…的人"),
+      CH("con", "con-", "一起", true),
+      CH("tion", "-tion", "名词后缀", true)
+    ],
+    words: [
+      { w: "inspect", parts: ["in", "spect"], pos: "v.", cn: "检查，视察", ipa: "/ɪnˈspekt/",
+        memo: "in-（向内）+ spect（看）→ 往里看→ 检查",
+        ex: "Officials came to <b>inspect</b> the factory.", exCn: "官员来检查这家工厂。" },
+      { w: "expect", parts: ["ex", "spect"], pos: "v.", cn: "期待，预料", ipa: "/ɪkˈspekt/",
+        memo: "ex-（向外）+ spect（看）→ 向外张望→ 期待",
+        note: "连写时词根的 s 被省掉：ex- + spect = expect，不是 exspect。",
+        alts: ["exspect"],
+        ex: "I <b>expect</b> the meeting to end by noon.", exCn: "我预计会议在中午前结束。" },
+      { w: "respect", parts: ["re", "spect"], pos: "v. / n.", cn: "尊重，尊敬", ipa: "/rɪˈspekt/",
+        memo: "re-（回）+ spect（看）→ 值得回头再看→ 尊重",
+        ex: "Students should <b>respect</b> their teachers.", exCn: "学生应当尊重老师。" },
+      { w: "suspect", parts: ["sus", "spect"], pos: "v. / n.", cn: "怀疑；嫌疑犯", ipa: "/səˈspekt/",
+        memo: "sus-（=sub，向下）+ spect（看）→ 从下往上打量→ 怀疑",
+        note: "sus- 是 sub 在 s 前的变体，连写时也只留一个 s：sus- + spect = suspect。",
+        ex: "The police <b>suspect</b> that he is lying.", exCn: "警方怀疑他在撒谎。" },
+      { w: "prospect", parts: ["pro", "spect"], pos: "n.", cn: "前景，可能性", ipa: "/ˈprɒspekt/",
+        memo: "pro-（向前）+ spect（看）→ 向前看到的景象→ 前景",
+        ex: "Job <b>prospects</b> are good in this city.", exCn: "这座城市的就业前景不错。" },
+      { w: "spectator", parts: ["spect", "ator"], pos: "n.", cn: "观众，旁观者", ipa: "/spekˈteɪtə(r)/",
+        memo: "spect（看）+ -ator（做…的人）→ 看的人→ 观众",
+        ex: "Thousands of <b>spectators</b> watched the final.", exCn: "数千名观众观看了决赛。" }
+    ]
+  },
+  {
+    root: "port", roman: "portare", cn: "搬，运",
+    blurb: "portare = 搬运。所有带 port 的词，骨子里都有一趟「把东西从 A 挪到 B」的旅程。",
+    chips: [
+      CH("im", "im-", "向内"),
+      CH("ex", "ex-", "向外"),
+      CH("trans", "trans-", "穿过"),
+      CH("sup", "sup-", "= sub，在下"),
+      CH("re", "re-", "回 / 再"),
+      CH("port", "port", "搬运"),
+      CH("able", "-able", "能…的"),
+      CH("dis", "dis-", "分开", true),
+      CH("tion", "-tion", "名词后缀", true)
+    ],
+    words: [
+      { w: "import", parts: ["im", "port"], pos: "v. / n.", cn: "进口，输入", ipa: "/ɪmˈpɔːt/",
+        memo: "im-（向内）+ port（搬）→ 搬到国内→ 进口",
+        ex: "The country <b>imports</b> most of its oil.", exCn: "这个国家大部分石油靠进口。" },
+      { w: "export", parts: ["ex", "port"], pos: "v. / n.", cn: "出口，输出", ipa: "/ɪkˈspɔːt/",
+        memo: "ex-（向外）+ port（搬）→ 搬出去→ 出口",
+        ex: "They <b>export</b> tea to Europe.", exCn: "他们向欧洲出口茶叶。" },
+      { w: "transport", parts: ["trans", "port"], pos: "v. / n.", cn: "运输", ipa: "/trænˈspɔːt/",
+        memo: "trans-（穿过）+ port（搬）→ 从这头搬到那头→ 运输",
+        ex: "Trucks <b>transport</b> goods across the country.", exCn: "卡车把货物运往全国各地。" },
+      { w: "support", parts: ["sup", "port"], pos: "v. / n.", cn: "支持，支撑", ipa: "/səˈpɔːt/",
+        memo: "sup-（=sub，在下）+ port（扛）→ 从下面扛住→ 支持",
+        ex: "Her family <b>supported</b> her decision.", exCn: "她的家人支持她的决定。" },
+      { w: "report", parts: ["re", "port"], pos: "v. / n.", cn: "报告，报道", ipa: "/rɪˈpɔːt/",
+        memo: "re-（回）+ port（带）→ 把消息带回来→ 报告",
+        ex: "He <b>reported</b> the accident to the police.", exCn: "他向警方报告了这起事故。" },
+      { w: "portable", parts: ["port", "able"], pos: "adj.", cn: "便携的，手提的", ipa: "/ˈpɔːtəbl/",
+        memo: "port（搬）+ -able（能…的）→ 能搬得动的→ 便携的",
+        ex: "This is a <b>portable</b> speaker.", exCn: "这是一台便携音箱。" }
+    ]
+  },
+  {
+    root: "dict", roman: "dicere", cn: "说",
+    blurb: "dicere = 说。谁先说、谁反着说、谁被判给你说——dict 这一族讲的全是「说话的位置」。",
+    chips: [
+      CH("pre", "pre-", "先，在前"),
+      CH("contra", "contra-", "相反"),
+      CH("ad", "ad-", "朝向"),
+      CH("ver", "ver-", "真"),
+      CH("dict", "dict", "说"),
+      CH("ate", "-ate", "动词后缀"),
+      CH("ion", "-ion", "名词后缀"),
+      CH("ary", "-ary", "集合 / 与…有关"),
+      CH("sub", "sub-", "向下", true),
+      CH("ment", "-ment", "名词后缀", true)
+    ],
+    words: [
+      { w: "predict", parts: ["pre", "dict"], pos: "v.", cn: "预言，预测", ipa: "/prɪˈdɪkt/",
+        memo: "pre-（先）+ dict（说）→ 先说出来→ 预测",
+        ex: "No one can <b>predict</b> the future.", exCn: "没人能预测未来。" },
+      { w: "dictate", parts: ["dict", "ate"], pos: "v.", cn: "口述；命令", ipa: "/dɪkˈteɪt/",
+        memo: "dict（说）+ -ate（动词）→ 说一句、别人记一句→ 口述",
+        ex: "She <b>dictated</b> a letter to her assistant.", exCn: "她向助手口述了一封信。" },
+      { w: "contradict", parts: ["contra", "dict"], pos: "v.", cn: "反驳；与…矛盾", ipa: "/ˌkɒntrəˈdɪkt/",
+        memo: "contra-（相反）+ dict（说）→ 反着说→ 反驳、矛盾",
+        ex: "His actions <b>contradict</b> his words.", exCn: "他的行为与他的话相互矛盾。" },
+      { w: "addict", parts: ["ad", "dict"], pos: "n. / v.", cn: "上瘾的人；使上瘾", ipa: "/ˈædɪkt/",
+        memo: "ad-（朝向）+ dict（判给）→ 被「判」给某样东西→ 上瘾",
+        ex: "He became a game <b>addict</b> in college.", exCn: "他大学时成了游戏迷。" },
+      { w: "dictionary", parts: ["dict", "ion", "ary"], pos: "n.", cn: "词典", ipa: "/ˈdɪkʃənri/",
+        memo: "dict（说）+ -ion + -ary（集合）→ 收录各种「说法」的书→ 词典",
+        ex: "Look it up in the <b>dictionary</b>.", exCn: "去词典里查一下。" },
+      { w: "verdict", parts: ["ver", "dict"], pos: "n.", cn: "裁决，判决", ipa: "/ˈvɜːdɪkt/",
+        memo: "ver-（真）+ dict（说）→ 说出真相→ 裁决",
+        ex: "The jury reached a <b>verdict</b>.", exCn: "陪审团作出了裁决。" }
+    ]
+  },
+  {
+    root: "mit / miss", roman: "mittere", cn: "送，放出",
+    blurb: "mittere = 送。mit 和 miss 是同一块零件的两种长相：往里送是 admit，往外送是 dismiss。",
+    chips: [
+      CH("ad", "ad-", "朝向"),
+      CH("sub", "sub-", "向下"),
+      CH("per", "per-", "穿过"),
+      CH("trans", "trans-", "穿过"),
+      CH("dis", "dis-", "分开"),
+      CH("mit", "mit", "送（动词）"),
+      CH("miss", "miss", "送（名词）"),
+      CH("ion", "-ion", "名词后缀"),
+      CH("pre", "pre-", "先", true),
+      CH("able", "-able", "能…的", true)
+    ],
+    words: [
+      { w: "admit", parts: ["ad", "mit"], pos: "v.", cn: "承认；准许进入", ipa: "/ədˈmɪt/",
+        memo: "ad-（向）+ mit（送）→ 把人送进门→ 准许进入；把话送出来→ 承认",
+        ex: "He <b>admitted</b> that he was wrong.", exCn: "他承认自己错了。" },
+      { w: "submit", parts: ["sub", "mit"], pos: "v.", cn: "提交；屈服", ipa: "/səbˈmɪt/",
+        memo: "sub-（向下）+ mit（送）→ 递到下面去→ 提交",
+        ex: "Please <b>submit</b> your report by Friday.", exCn: "请在周五前提交报告。" },
+      { w: "permit", parts: ["per", "mit"], pos: "v. / n.", cn: "允许；许可证", ipa: "/pəˈmɪt/",
+        memo: "per-（穿过）+ mit（送）→ 放它过去→ 允许",
+        ex: "Smoking is not <b>permitted</b> here.", exCn: "此处禁止吸烟。" },
+      { w: "transmit", parts: ["trans", "mit"], pos: "v.", cn: "传送，传播", ipa: "/trænzˈmɪt/",
+        memo: "trans-（穿过）+ mit（送）→ 送过去→ 传输",
+        ex: "The station <b>transmits</b> signals all day.", exCn: "这个电台整天发送信号。" },
+      { w: "dismiss", parts: ["dis", "miss"], pos: "v.", cn: "解散；解雇；不予考虑", ipa: "/dɪsˈmɪs/",
+        memo: "dis-（分开）+ miss（送）→ 把大家送散→ 解散",
+        ex: "The teacher <b>dismissed</b> the class early.", exCn: "老师提前下课了。" },
+      { w: "mission", parts: ["miss", "ion"], pos: "n.", cn: "任务，使命", ipa: "/ˈmɪʃn/",
+        memo: "miss（送）+ -ion（名词）→ 被送出去要做的事→ 任务",
+        ex: "Their <b>mission</b> is to save the whales.", exCn: "他们的任务是拯救鲸鱼。" }
+    ]
+  },
+  {
+    root: "struct", roman: "struere", cn: "建造，堆",
+    blurb: "struere = 堆起来建。往一起堆是 construct，往里堆是 instruct，挡在对面堆就是 obstruct。",
+    chips: [
+      CH("con", "con-", "一起"),
+      CH("in", "in-", "在内"),
+      CH("ob", "ob-", "对着 / 反"),
+      CH("de", "de-", "向下 / 去掉"),
+      CH("re", "re-", "再"),
+      CH("struct", "struct", "建造"),
+      CH("ure", "-ure", "名词后缀"),
+      CH("ion", "-ion", "名词后缀"),
+      CH("trans", "trans-", "穿过", true),
+      CH("able", "-able", "能…的", true)
+    ],
+    words: [
+      { w: "construct", parts: ["con", "struct"], pos: "v.", cn: "建造，构建", ipa: "/kənˈstrʌkt/",
+        memo: "con-（一起）+ struct（堆）→ 堆到一起→ 建造",
+        ex: "They plan to <b>construct</b> a new bridge.", exCn: "他们计划建一座新桥。" },
+      { w: "instruct", parts: ["in", "struct"], pos: "v.", cn: "指导，命令", ipa: "/ɪnˈstrʌkt/",
+        memo: "in-（在内）+ struct（建）→ 在脑子里搭起来→ 教导",
+        ex: "The coach <b>instructed</b> us to warm up.", exCn: "教练指导我们热身。" },
+      { w: "structure", parts: ["struct", "ure"], pos: "n.", cn: "结构，构造", ipa: "/ˈstrʌktʃə(r)/",
+        memo: "struct（建）+ -ure（名词）→ 搭起来的样子→ 结构",
+        ex: "The <b>structure</b> of the essay is clear.", exCn: "这篇文章的结构很清晰。" },
+      { w: "obstruct", parts: ["ob", "struct"], pos: "v.", cn: "阻挡，妨碍", ipa: "/əbˈstrʌkt/",
+        memo: "ob-（对着）+ struct（堆）→ 在你对面堆起来→ 阻挡",
+        ex: "A fallen tree <b>obstructed</b> the road.", exCn: "一棵倒下的树挡住了路。" },
+      { w: "destruction", parts: ["de", "struct", "ion"], pos: "n.", cn: "破坏，毁灭", ipa: "/dɪˈstrʌkʃn/",
+        memo: "de-（去掉）+ struct（建）+ -ion（名词）→ 把建好的拆掉→ 破坏",
+        nudge: "目标是名词「破坏」，所以最后还要一块名词后缀。",
+        ex: "The storm caused great <b>destruction</b>.", exCn: "暴风雨造成了巨大破坏。" },
+      { w: "reconstruct", parts: ["re", "con", "struct"], pos: "v.", cn: "重建，重现", ipa: "/ˌriːkənˈstrʌkt/",
+        memo: "re-（再）+ con-（一起）+ struct（建）→ 再堆一遍→ 重建",
+        nudge: "「重建」＝ 再 + 一起 + 建，三块零件。",
+        ex: "Workers are <b>reconstructing</b> the old church.", exCn: "工人们正在重建那座老教堂。" }
+    ]
+  },
+  {
+    root: "tract", roman: "trahere", cn: "拉",
+    blurb: "trahere = 拉。拉向自己是吸引，拉到一起是收缩，从里面拉出来就是提取——方向全由前缀决定。",
+    chips: [
+      CH("at", "at-", "= ad，朝向"),
+      CH("con", "con-", "一起"),
+      CH("dis", "dis-", "分开"),
+      CH("ex", "ex-", "向外"),
+      CH("sub", "sub-", "在下"),
+      CH("abs", "abs-", "离开"),
+      CH("tract", "tract", "拉"),
+      CH("trans", "trans-", "穿过", true),
+      CH("tion", "-tion", "名词后缀", true)
+    ],
+    words: [
+      { w: "attract", parts: ["at", "tract"], pos: "v.", cn: "吸引", ipa: "/əˈtrækt/",
+        memo: "at-（=ad，朝向）+ tract（拉）→ 拉向自己→ 吸引",
+        ex: "The show <b>attracted</b> a huge crowd.", exCn: "这场演出吸引了大批观众。" },
+      { w: "contract", parts: ["con", "tract"], pos: "n. / v.", cn: "合同；收缩", ipa: "/ˈkɒntrækt/",
+        memo: "con-（一起）+ tract（拉）→ 拉到一起→ 收缩；把双方拉到一起→ 合同",
+        ex: "They signed a two-year <b>contract</b>.", exCn: "他们签了一份两年的合同。" },
+      { w: "distract", parts: ["dis", "tract"], pos: "v.", cn: "分散（注意力），使分心", ipa: "/dɪˈstrækt/",
+        memo: "dis-（分开）+ tract（拉）→ 把注意力拉开→ 分心",
+        ex: "Don't <b>distract</b> me while I'm driving.", exCn: "我开车时别让我分心。" },
+      { w: "extract", parts: ["ex", "tract"], pos: "v.", cn: "提取，拔出", ipa: "/ɪkˈstrækt/",
+        memo: "ex-（向外）+ tract（拉）→ 往外拉→ 提取",
+        ex: "The dentist had to <b>extract</b> the tooth.", exCn: "牙医不得不拔掉那颗牙。" },
+      { w: "subtract", parts: ["sub", "tract"], pos: "v.", cn: "减去，扣除", ipa: "/səbˈtrækt/",
+        memo: "sub-（在下）+ tract（拉）→ 从下面抽走→ 减去",
+        ex: "<b>Subtract</b> 5 from 12 and you get 7.", exCn: "12 减去 5 等于 7。" },
+      { w: "abstract", parts: ["abs", "tract"], pos: "adj. / n.", cn: "抽象的；摘要", ipa: "/ˈæbstrækt/",
+        memo: "abs-（离开）+ tract（拉）→ 从具体里拉走→ 抽象的",
+        ex: "This idea is too <b>abstract</b> for a child.", exCn: "这个想法对孩子来说太抽象了。" }
+    ]
+  },
+  {
+    root: "ject", roman: "jacere", cn: "投，扔",
+    blurb: "jacere = 投。往哪投，词就是什么意思：投回去是拒绝，投出去是弹出，投到脚边就成了「主题」。",
+    chips: [
+      CH("re", "re-", "回"),
+      CH("pro", "pro-", "向前"),
+      CH("ob", "ob-", "对着"),
+      CH("sub", "sub-", "在下"),
+      CH("in", "in-", "向内"),
+      CH("e", "e-", "向外"),
+      CH("ject", "ject", "投"),
+      CH("trans", "trans-", "穿过", true),
+      CH("tion", "-tion", "名词后缀", true)
+    ],
+    words: [
+      { w: "reject", parts: ["re", "ject"], pos: "v.", cn: "拒绝，驳回", ipa: "/rɪˈdʒekt/",
+        memo: "re-（回）+ ject（投）→ 投回去→ 拒绝",
+        ex: "She <b>rejected</b> his offer at once.", exCn: "她立刻拒绝了他的提议。" },
+      { w: "project", parts: ["pro", "ject"], pos: "n. / v.", cn: "项目；投射", ipa: "/ˈprɒdʒekt/",
+        memo: "pro-（向前）+ ject（投）→ 向前投出去→ 项目、计划",
+        ex: "Our <b>project</b> ends next month.", exCn: "我们的项目下个月结束。" },
+      { w: "object", parts: ["ob", "ject"], pos: "n. / v.", cn: "物体；反对", ipa: "/ˈɒbdʒɪkt/",
+        memo: "ob-（对着）+ ject（投）→ 扔到对面→ 物体；对着扔→ 反对",
+        ex: "Many people <b>object</b> to the plan.", exCn: "很多人反对这个计划。" },
+      { w: "subject", parts: ["sub", "ject"], pos: "n.", cn: "科目；主题", ipa: "/ˈsʌbdʒɪkt/",
+        memo: "sub-（在下）+ ject（投）→ 投到下面、受支配→ 主题、科目",
+        ex: "Math is my favourite <b>subject</b>.", exCn: "数学是我最喜欢的科目。" },
+      { w: "inject", parts: ["in", "ject"], pos: "v.", cn: "注射，注入", ipa: "/ɪnˈdʒekt/",
+        memo: "in-（向内）+ ject（投）→ 投进去→ 注射",
+        ex: "The nurse <b>injected</b> him with the vaccine.", exCn: "护士给他注射了疫苗。" },
+      { w: "eject", parts: ["e", "ject"], pos: "v.", cn: "驱逐，弹出", ipa: "/ɪˈdʒekt/",
+        memo: "e-（向外）+ ject（投）→ 扔出去→ 弹出",
+        ex: "The machine <b>ejected</b> the bad coin.", exCn: "机器把坏硬币弹了出来。" }
+    ]
+  },
+  {
+    root: "fer", roman: "ferre", cn: "带，拿",
+    blurb: "ferre = 带。带到你面前是 offer，先一步带走是 prefer，在下面扛着就是 suffer——同一个「带」，位置不同，命也不同。",
+    chips: [
+      CH("of", "of-", "= ob，朝向"),
+      CH("pre", "pre-", "先"),
+      CH("re", "re-", "回"),
+      CH("trans", "trans-", "穿过"),
+      CH("suf", "suf-", "= sub，在下"),
+      CH("dif", "dif-", "= dis，分开"),
+      CH("fer", "fer", "带"),
+      CH("pro", "pro-", "向前", true),
+      CH("ence", "-ence", "名词后缀", true),
+      CH("ab", "ab-", "离开", true)
+    ],
+    words: [
+      { w: "offer", parts: ["of", "fer"], pos: "v. / n.", cn: "提供，提议", ipa: "/ˈɒfə(r)/",
+        memo: "of-（=ob，朝向）+ fer（带）→ 带到你面前→ 提供",
+        ex: "They <b>offered</b> me a cup of tea.", exCn: "他们给我端了杯茶。" },
+      { w: "prefer", parts: ["pre", "fer"], pos: "v.", cn: "更喜欢，宁愿", ipa: "/prɪˈfɜː(r)/",
+        memo: "pre-（先）+ fer（带）→ 先挑走→ 更喜欢",
+        ex: "I <b>prefer</b> tea to coffee.", exCn: "比起咖啡我更喜欢茶。" },
+      { w: "refer", parts: ["re", "fer"], pos: "v.", cn: "提到；参考", ipa: "/rɪˈfɜː(r)/",
+        memo: "re-（回）+ fer（带）→ 把话头带回去→ 提到、参考",
+        ex: "Please <b>refer</b> to the table on page 3.", exCn: "请参考第 3 页的表格。" },
+      { w: "transfer", parts: ["trans", "fer"], pos: "v. / n.", cn: "转移，调动", ipa: "/trænsˈfɜː(r)/",
+        memo: "trans-（穿过）+ fer（带）→ 从这儿带到那儿→ 转移",
+        ex: "He was <b>transferred</b> to another office.", exCn: "他被调到了另一个办公室。" },
+      { w: "suffer", parts: ["suf", "fer"], pos: "v.", cn: "遭受，受苦", ipa: "/ˈsʌfə(r)/",
+        memo: "suf-（=sub，在下）+ fer（扛）→ 在下面扛着→ 受苦",
+        ex: "She <b>suffered</b> from a bad cold.", exCn: "她饱受重感冒之苦。" },
+      { w: "differ", parts: ["dif", "fer"], pos: "v.", cn: "不同，相异", ipa: "/ˈdɪfə(r)/",
+        memo: "dif-（=dis，分开）+ fer（带）→ 各带各的、分道走→ 不同",
+        ex: "Their views <b>differ</b> widely.", exCn: "他们的观点差别很大。" }
+    ]
+  },
+  {
+    root: "press", roman: "premere", cn: "压",
+    blurb: "premere = 压。往外压是表达，往脑子里压是印象，往下压就是压抑——一条「压」的方向轴。",
+    chips: [
+      CH("ex", "ex-", "向外"),
+      CH("im", "im-", "向内"),
+      CH("de", "de-", "向下"),
+      CH("com", "com-", "一起"),
+      CH("sup", "sup-", "= sub，在下"),
+      CH("press", "press", "压"),
+      CH("ure", "-ure", "名词后缀"),
+      CH("pro", "pro-", "向前", true),
+      CH("ion", "-ion", "名词后缀", true),
+      CH("trans", "trans-", "穿过", true)
+    ],
+    words: [
+      { w: "express", parts: ["ex", "press"], pos: "v. / adj.", cn: "表达；快递的", ipa: "/ɪkˈspres/",
+        memo: "ex-（向外）+ press（压）→ 把想法压出来→ 表达",
+        ex: "Words cannot <b>express</b> my thanks.", exCn: "言语无法表达我的谢意。" },
+      { w: "impress", parts: ["im", "press"], pos: "v.", cn: "使印象深刻", ipa: "/ɪmˈpres/",
+        memo: "im-（向内）+ press（压）→ 压进脑子里→ 留下印象",
+        ex: "Her speech <b>impressed</b> everyone.", exCn: "她的演讲让每个人印象深刻。" },
+      { w: "depress", parts: ["de", "press"], pos: "v.", cn: "使沮丧；压低", ipa: "/dɪˈpres/",
+        memo: "de-（向下）+ press（压）→ 往下压→ 压抑",
+        ex: "Rainy weather always <b>depresses</b> him.", exCn: "下雨天总让他情绪低落。" },
+      { w: "compress", parts: ["com", "press"], pos: "v.", cn: "压缩", ipa: "/kəmˈpres/",
+        memo: "com-（一起）+ press（压）→ 压到一起→ 压缩",
+        ex: "<b>Compress</b> the file before sending it.", exCn: "发送前先把文件压缩一下。" },
+      { w: "suppress", parts: ["sup", "press"], pos: "v.", cn: "镇压，抑制", ipa: "/səˈpres/",
+        memo: "sup-（=sub，在下）+ press（压）→ 压到下面去→ 镇压",
+        ex: "He could not <b>suppress</b> a smile.", exCn: "他忍不住笑了。" },
+      { w: "pressure", parts: ["press", "ure"], pos: "n.", cn: "压力", ipa: "/ˈpreʃə(r)/",
+        memo: "press（压）+ -ure（名词）→ 被压的感觉→ 压力",
+        ex: "She works well under <b>pressure</b>.", exCn: "她在压力下表现出色。" }
+    ]
+  },
+  {
+    root: "pos", roman: "ponere", cn: "放",
+    blurb: "ponere = 放。放到大家面前是提议，放到一起是组成，放到外面就暴露了。这一族几乎全是「放哪儿」的问题。",
+    chips: [
+      CH("pro", "pro-", "向前"),
+      CH("com", "com-", "一起"),
+      CH("ex", "ex-", "向外"),
+      CH("im", "im-", "向内"),
+      CH("dis", "dis-", "分开"),
+      CH("op", "op-", "= ob，对着"),
+      CH("pose", "pose", "放"),
+      CH("tion", "-tion", "名词后缀", true),
+      CH("in", "in-", "向内", true),
+      CH("ab", "ab-", "离开", true)
+    ],
+    words: [
+      { w: "propose", parts: ["pro", "pose"], pos: "v.", cn: "提议；求婚", ipa: "/prəˈpəʊz/",
+        memo: "pro-（向前）+ pose（放）→ 放到大家面前→ 提议",
+        ex: "She <b>proposed</b> a new plan.", exCn: "她提出了一个新方案。" },
+      { w: "compose", parts: ["com", "pose"], pos: "v.", cn: "组成；创作", ipa: "/kəmˈpəʊz/",
+        memo: "com-（一起）+ pose（放）→ 放到一起→ 组成",
+        ex: "Water is <b>composed</b> of hydrogen and oxygen.", exCn: "水由氢和氧组成。" },
+      { w: "expose", parts: ["ex", "pose"], pos: "v.", cn: "暴露，揭露", ipa: "/ɪkˈspəʊz/",
+        memo: "ex-（向外）+ pose（放）→ 放到外面→ 暴露",
+        ex: "Don't <b>expose</b> your skin to the sun.", exCn: "别让皮肤暴晒。" },
+      { w: "impose", parts: ["im", "pose"], pos: "v.", cn: "强加，征收", ipa: "/ɪmˈpəʊz/",
+        memo: "im-（向内）+ pose（放）→ 压到你身上→ 强加",
+        nudge: "m 前面要用 im-，不能写 in-。",
+        ex: "They <b>imposed</b> a new tax on imports.", exCn: "他们对进口商品征收了新税。" },
+      { w: "dispose", parts: ["dis", "pose"], pos: "v.", cn: "处理，布置", ipa: "/dɪˈspəʊz/",
+        memo: "dis-（分开）+ pose（放）→ 分开摆放→ 处理、布置",
+        ex: "How do you <b>dispose</b> of old batteries?", exCn: "你怎么处理旧电池？" },
+      { w: "oppose", parts: ["op", "pose"], pos: "v.", cn: "反对", ipa: "/əˈpəʊz/",
+        memo: "op-（=ob，对着）+ pose（放）→ 对着放→ 反对",
+        ex: "Many locals <b>oppose</b> the new road.", exCn: "许多当地人反对这条新路。" }
+    ]
+  },
+  {
+    root: "form", roman: "forma", cn: "形状",
+    blurb: "forma = 形状。把形状放进脑子是通知，重新塑形是改革，变成一个形状就是制服。",
+    chips: [
+      CH("in", "in-", "向内"),
+      CH("re", "re-", "再"),
+      CH("trans", "trans-", "转变"),
+      CH("uni", "uni-", "单一"),
+      CH("per", "per-", "彻底"),
+      CH("form", "form", "形状"),
+      CH("al", "-al", "形容词后缀"),
+      CH("tion", "-tion", "名词后缀", true),
+      CH("sub", "sub-", "在下", true),
+      CH("ab", "ab-", "离开", true)
+    ],
+    words: [
+      { w: "inform", parts: ["in", "form"], pos: "v.", cn: "通知，告知", ipa: "/ɪnˈfɔːm/",
+        memo: "in-（向内）+ form（形）→ 把样子放进脑子里→ 告知",
+        ex: "Please <b>inform</b> us of any changes.", exCn: "如有变动请通知我们。" },
+      { w: "reform", parts: ["re", "form"], pos: "v. / n.", cn: "改革，改造", ipa: "/rɪˈfɔːm/",
+        memo: "re-（再）+ form（形）→ 重新塑形→ 改革",
+        ex: "The government promised to <b>reform</b> the tax system.", exCn: "政府承诺改革税制。" },
+      { w: "transform", parts: ["trans", "form"], pos: "v.", cn: "转变，改造", ipa: "/trænsˈfɔːm/",
+        memo: "trans-（转变）+ form（形）→ 换一个形状→ 转变",
+        ex: "The internet has <b>transformed</b> our lives.", exCn: "互联网改变了我们的生活。" },
+      { w: "uniform", parts: ["uni", "form"], pos: "n. / adj.", cn: "制服；统一的", ipa: "/ˈjuːnɪfɔːm/",
+        memo: "uni-（单一）+ form（形）→ 一个样子→ 制服、统一的",
+        ex: "All students must wear <b>uniform</b>.", exCn: "所有学生都必须穿校服。" },
+      { w: "perform", parts: ["per", "form"], pos: "v.", cn: "表演；执行", ipa: "/pəˈfɔːm/",
+        memo: "per-（彻底）+ form（形）→ 把形彻底做出来→ 表演、履行",
+        ex: "The band will <b>perform</b> tonight.", exCn: "乐队今晚演出。" },
+      { w: "formal", parts: ["form", "al"], pos: "adj.", cn: "正式的，正规的", ipa: "/ˈfɔːml/",
+        memo: "form（形）+ -al（…的）→ 讲究形式的→ 正式的",
+        ex: "Please write a <b>formal</b> letter of apology.", exCn: "请写一封正式的道歉信。" }
+    ]
+  },
+  {
+    root: "tain", roman: "tenere", cn: "握住，保持",
+    blurb: "tenere = 握住。一起握住是包含，握住不放是保留，从下面托住就是支撑。",
+    chips: [
+      CH("con", "con-", "一起"),
+      CH("ob", "ob-", "朝向"),
+      CH("re", "re-", "回"),
+      CH("sus", "sus-", "= sub，在下"),
+      CH("at", "at-", "= ad，朝向"),
+      CH("de", "de-", "向下"),
+      CH("tain", "tain", "握住"),
+      CH("trans", "trans-", "穿过", true),
+      CH("tion", "-tion", "名词后缀", true),
+      CH("pro", "pro-", "向前", true)
+    ],
+    words: [
+      { w: "contain", parts: ["con", "tain"], pos: "v.", cn: "包含，容纳", ipa: "/kənˈteɪn/",
+        memo: "con-（一起）+ tain（握）→ 一起握在手里→ 包含",
+        ex: "This box <b>contains</b> all my books.", exCn: "这个箱子里装着我所有的书。" },
+      { w: "obtain", parts: ["ob", "tain"], pos: "v.", cn: "获得，得到", ipa: "/əbˈteɪn/",
+        memo: "ob-（朝向）+ tain（握）→ 朝它伸手抓住→ 获得",
+        ex: "You can <b>obtain</b> the form online.", exCn: "你可以在网上获取这张表格。" },
+      { w: "retain", parts: ["re", "tain"], pos: "v.", cn: "保留，记住", ipa: "/rɪˈteɪn/",
+        memo: "re-（回）+ tain（握）→ 拿回来留住→ 保留",
+        ex: "The town <b>retains</b> much of its charm.", exCn: "这座小镇依然保有许多魅力。" },
+      { w: "sustain", parts: ["sus", "tain"], pos: "v.", cn: "维持，支撑", ipa: "/səˈsteɪn/",
+        memo: "sus-（=sub，在下）+ tain（握）→ 在下面托住→ 维持",
+        ex: "The bridge cannot <b>sustain</b> that weight.", exCn: "这座桥承受不了那个重量。" },
+      { w: "attain", parts: ["at", "tain"], pos: "v.", cn: "达到，获得", ipa: "/əˈteɪn/",
+        memo: "at-（=ad，朝向）+ tain（握）→ 朝着目标抓住→ 达到",
+        ex: "She <b>attained</b> her goal at last.", exCn: "她终于达到了目标。" },
+      { w: "detain", parts: ["de", "tain"], pos: "v.", cn: "扣留，耽误", ipa: "/dɪˈteɪn/",
+        memo: "de-（向下）+ tain（握）→ 按在原地→ 扣留",
+        ex: "The police <b>detained</b> two men for questioning.", exCn: "警方扣留了两名男子问话。" }
+    ]
+  },
+  {
+    root: "vis / vid", roman: "videre", cn: "看",
+    blurb: "videre = 看，和 spect 是同一个意思的两套零件。vis、vid、vide 是它的三种长相——看它一眼，就该认得。",
+    chips: [
+      CH("vis", "vis", "看"),
+      CH("vid", "vid", "看"),
+      CH("vide", "vide", "看"),
+      CH("ible", "-ible", "能…的"),
+      CH("ion", "-ion", "名词后缀"),
+      CH("ual", "-ual", "…的"),
+      CH("in", "in-", "不"),
+      CH("e", "e-", "向外"),
+      CH("pro", "pro-", "向前"),
+      CH("ence", "-ence", "名词后缀"),
+      CH("trans", "trans-", "穿过", true),
+      CH("tion", "-tion", "名词后缀", true)
+    ],
+    words: [
+      { w: "visible", parts: ["vis", "ible"], pos: "adj.", cn: "可见的，看得见的", ipa: "/ˈvɪzəbl/",
+        memo: "vis（看）+ -ible（能…的）→ 能看见的",
+        ex: "The comet is <b>visible</b> tonight.", exCn: "今晚能看到那颗彗星。" },
+      { w: "vision", parts: ["vis", "ion"], pos: "n.", cn: "视力；愿景", ipa: "/ˈvɪʒn/",
+        memo: "vis（看）+ -ion（名词）→ 看的能力→ 视力",
+        ex: "He has poor <b>vision</b> in one eye.", exCn: "他一只眼睛视力不好。" },
+      { w: "visual", parts: ["vis", "ual"], pos: "adj.", cn: "视觉的，看得见的", ipa: "/ˈvɪʒuəl/",
+        memo: "vis（看）+ -ual（…的）→ 与看有关的",
+        ex: "The film has stunning <b>visual</b> effects.", exCn: "这部电影的视觉效果惊人。" },
+      { w: "invisible", parts: ["in", "vis", "ible"], pos: "adj.", cn: "看不见的", ipa: "/ɪnˈvɪzəbl/",
+        memo: "in-（不）+ vis（看）+ -ible（能…的）→ 不能被看见的",
+        ex: "The gas is colourless and <b>invisible</b>.", exCn: "这种气体无色无形。" },
+      { w: "evidence", parts: ["e", "vid", "ence"], pos: "n.", cn: "证据", ipa: "/ˈevɪdəns/",
+        memo: "e-（向外）+ vid（看）+ -ence（名词）→ 摆出来给人看的东西→ 证据",
+        ex: "There is no <b>evidence</b> against him.", exCn: "没有对他不利的证据。" },
+      { w: "provide", parts: ["pro", "vide"], pos: "v.", cn: "提供，供给", ipa: "/prəˈvaɪd/",
+        memo: "pro-（向前）+ vide（看）→ 提前看到需求→ 提供",
+        ex: "The hotel <b>provides</b> free breakfast.", exCn: "酒店提供免费早餐。" }
+    ]
+  }
+];
+// ===DATA-END===
+
+/* =================================================================
+   状态与工具
+   ================================================================= */
+const SAVE_KEY = "cet4-forge-v1";
+let save = { learned: {}, best: 0, sound: true };
+try {
+  const raw = localStorage.getItem(SAVE_KEY);
+  if (raw) save = Object.assign(save, JSON.parse(raw));
+} catch (e) { /* file:// 下可能不可用，忽略 */ }
+function persist() {
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (e) {}
+}
+
+const $ = (id) => document.getElementById(id);
+const S = {
+  fi: 0, order: [], qi: 0,
+  strip: [], attempts: 3,
+  score: 0, streak: 0, right: 0, wrong: 0,
+  quiz: [], quizIdx: 0, quizRight: 0, answered: false, locked: false
+};
+
+/* ---------------- 音效 ---------------- */
+let actx = null;
+function ensureAudio() {
+  if (!actx) {
+    try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { actx = null; }
+  }
+  if (actx && actx.state === "suspended") actx.resume();
+}
+function tone(freq, dur, type, vol, delay) {
+  if (!save.sound || !actx) return;
+  const t0 = actx.currentTime + (delay || 0);
+  const o = actx.createOscillator();
+  const g = actx.createGain();
+  o.type = type || "sine";
+  o.frequency.setValueAtTime(freq, t0);
+  g.gain.setValueAtTime(0, t0);
+  g.gain.linearRampToValueAtTime(vol || 0.05, t0 + 0.012);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  o.connect(g);
+  g.connect(actx.destination);
+  o.start(t0);
+  o.stop(t0 + dur + 0.03);
+}
+const sfx = {
+  tap: () => tone(560, 0.07, "triangle", 0.035),
+  ok: () => { tone(659, 0.16, "sine", 0.06); tone(988, 0.24, "sine", 0.05, 0.09); },
+  err: () => { tone(150, 0.16, "sawtooth", 0.045); tone(110, 0.22, "sawtooth", 0.04, 0.08); },
+  win: () => { [523, 659, 784, 1046].forEach((f, i) => tone(f, 0.3, "sine", 0.055, i * 0.11)); }
+};
+
+/* ---------------- 屏幕切换 ---------------- */
+function show(name) {
+  document.querySelectorAll(".screen").forEach((el) => el.classList.remove("active"));
+  const el = $("s-" + name);
+  if (el) el.classList.add("active");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+/* ---------------- 首页 ---------------- */
+function renderHome() {
+  const box = $("home-chapters");
+  box.innerHTML = "";
+  FAMILIES.forEach((f, i) => {
+    const done = f.words.filter((w) => save.learned[w.w]).length;
+    const btn = document.createElement("button");
+    btn.className = "chapter";
+    btn.innerHTML =
+      '<div class="root">' + f.root + "<em>" + f.cn + "</em></div>" +
+      '<div class="sub">' + f.words.length + " 个词 · 已收录 " + done + " / " + f.words.length + "</div>" +
+      '<div class="bar"><i style="width:' + Math.round((done / f.words.length) * 100) + '%"></i></div>';
+    btn.addEventListener("click", () => { ensureAudio(); sfx.tap(); startFamily(i); });
+    box.appendChild(btn);
+  });
+}
+
+/* ---------------- 开一局 ---------------- */
+function shuffle(a) {
+  const r = a.slice();
+  for (let i = r.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [r[i], r[j]] = [r[j], r[i]];
+  }
+  return r;
+}
+
+function startFamily(fi) {
+  S.fi = fi;
+  S.order = shuffle(FAMILIES[fi].words.map((_, i) => i));
+  S.qi = 0; S.strip = []; S.attempts = 3; S.locked = false;
+  S.score = 0; S.streak = 0; S.right = 0; S.wrong = 0;
+  show("play");
+  renderPlay();
+}
+
+function curWord() { return FAMILIES[S.fi].words[S.order[S.qi]]; }
+function curFamily() { return FAMILIES[S.fi]; }
+
+/* ---------------- 渲染游戏页 ---------------- */
+function renderPlay() {
+  const f = curFamily();
+  const w = curWord();
+  $("hud-fam").textContent = f.root;
+  $("hud-famcn").textContent = "「" + f.cn + "」";
+  $("hud-prog").textContent = (S.qi + 1) + " / " + S.order.length;
+  $("hud-score").textContent = S.score;
+  $("hud-streak").textContent = S.streak >= 2 ? "连击 ×" + S.streak : "";
+  $("target-cn").textContent = w.cn;
+  $("target-pos").textContent = w.pos;
+  $("target-note").textContent = "首字母 " + w.w[0];
+  $("wm-root").textContent = f.root;
+  $("family-note").innerHTML = "<b>" + f.root + "</b> 就是「" + f.cn + "」。　" + f.blurb;
+  $("forge-msg").textContent = "";
+  $("forge-msg").className = "forge-msg";
+
+  // 进度点
+  const pips = $("hud-pips");
+  pips.innerHTML = "";
+  S.order.forEach((_, i) => {
+    const d = document.createElement("span");
+    d.className = "pip" + (i < S.qi ? " on" : "") + (i === S.qi ? " now" : "");
+    pips.appendChild(d);
+  });
+
+  renderHearts();
+  renderSlots();
+  renderTray();
+}
+
+function renderHearts() {
+  const box = $("hearts");
+  box.innerHTML = "";
+  for (let i = 0; i < 3; i++) {
+    const d = document.createElement("span");
+    d.className = "heart" + (i >= S.attempts ? " gone" : "");
+    box.appendChild(d);
+  }
+  const tip = document.createElement("span");
+  tip.textContent = "熔炼机会";
+  box.appendChild(tip);
+}
+
+function renderSlots() {
+  const box = $("slots");
+  box.innerHTML = "";
+  for (let i = 0; i < 4; i++) {
+    const cell = document.createElement("div");
+    const t = S.strip[i];
+    if (t) {
+      const chip = curFamily().chips.find((c) => c.t === t);
+      cell.className = "slot filled";
+      cell.textContent = chip ? chip.label : t;
+      cell.title = "点击取回";
+      cell.addEventListener("click", () => removeAt(i));
+    } else {
+      cell.className = "slot empty";
+    }
+    box.appendChild(cell);
+  }
+}
+
+function renderTray() {
+  const box = $("tray");
+  box.innerHTML = "";
+  curFamily().chips.forEach((c) => {
+    const b = document.createElement("button");
+    const used = S.strip.indexOf(c.t) !== -1;
+    b.className = "chip" + (c.decoy ? " decoy" : "");
+    b.disabled = used;
+    b.innerHTML = '<span class="lab">' + c.label + '</span><span class="mean">' + c.m + "</span>";
+    b.addEventListener("click", () => {
+      if (S.strip.length >= 4) { flash("阵里最多放四块零件"); return; }
+      ensureAudio(); sfx.tap();
+      S.strip.push(c.t);
+      renderSlots(); renderTray();
+      $("forge-msg").textContent = "";
+    });
+    box.appendChild(b);
+  });
+}
+
+function removeAt(i) {
+  ensureAudio(); sfx.tap();
+  S.strip.splice(i, 1);
+  renderSlots(); renderTray();
+}
+
+function flash(msg, good) {
+  const el = $("forge-msg");
+  el.textContent = msg;
+  el.className = "forge-msg" + (good ? " good" : "");
+}
+
+function shakeSlots() {
+  const el = $("slots");
+  el.classList.remove("shake");
+  void el.offsetWidth;
+  el.classList.add("shake");
+}
+
+/* ---------------- 炼成 ---------------- */
+// 拼写合并规则：ex- + spect → expect、sus- + spect → suspect 这类中间会并掉一个字母
+function normalize(s) { return s.replace(/(.)\1+/g, "$1"); }
+
+function cast() {
+  ensureAudio();
+  if (S.locked) return;
+  const w = curWord();
+  const made = S.strip.join("");
+  if (!S.strip.length) { flash("先放几块零件进炼成阵"); shakeSlots(); return; }
+
+  const accepted = [w.w].concat(w.alts || []);
+  if (accepted.some((t) => normalize(t) === normalize(made))) {
+    S.locked = true;
+    S.streak += 1;
+    S.right += 1;
+    const gain = 100 + Math.max(0, S.streak - 1) * 15;
+    S.score += gain;
+    save.learned[w.w] = true;
+    persist();
+    sfx.ok();
+    burst();
+    setTimeout(() => revealCard(w, true, gain), 260);
+  } else {
+    S.streak = 0;
+    S.wrong += 1;
+    S.attempts -= 1;
+    S.score = Math.max(0, S.score - 20);
+    sfx.err();
+    shakeSlots();
+    renderHearts();
+    $("hud-score").textContent = S.score;
+    $("hud-streak").textContent = "";
+    if (S.attempts <= 0) {
+      S.locked = true;
+      flash("熔炼失败——看看它本来长什么样");
+      setTimeout(() => revealCard(w, false, 0), 700);
+    } else {
+      const extra = S.attempts === 1 && w.nudge ? "　" + w.nudge : "";
+      flash("「" + made + "」不是目标词，再想想" + extra);
+    }
+  }
+}
+
+/* ---------------- 揭晓卡 ---------------- */
+function revealCard(w, ok, gain) {
+  const f = curFamily();
+  $("wc-badge").textContent = ok ? "炼 成 成 功　+" + gain : "这 次 没 炼 成";
+  $("wc-badge").className = "wc-badge" + (ok ? "" : " fail");
+  $("wc-word").textContent = w.w;
+  $("wc-ipa").textContent = w.ipa;
+  const noteEl = $("wc-note");
+  if (w.note) { noteEl.textContent = w.note; noteEl.classList.add("on"); }
+  else { noteEl.textContent = ""; noteEl.classList.remove("on"); }
+  $("wc-cn").textContent = w.pos + " " + w.cn;
+
+  const parts = $("wc-parts");
+  parts.innerHTML = "";
+  w.parts.forEach((t) => {
+    const c = f.chips.find((x) => x.t === t);
+    const d = document.createElement("span");
+    d.className = "wcp";
+    d.innerHTML = (c ? c.label : t) + "<i>" + (c ? c.m : "") + "</i>";
+    parts.appendChild(d);
+  });
+
+  $("wc-memo").textContent = w.memo;
+  $("wc-ex").innerHTML = w.ex;
+  $("wc-excn").textContent = w.exCn;
+
+  const card = $("wordcard");
+  card.style.animation = "none";
+  void card.offsetWidth;
+  card.style.animation = "";
+
+  S.locked = false;
+  show("reveal");
+}
+
+function nextWord() {
+  S.qi += 1;
+  S.strip = [];
+  S.attempts = 3;
+  S.locked = false;
+  if (S.qi >= S.order.length) { startQuiz(); return; }
+  show("play");
+  renderPlay();
+}
+
+/* ---------------- 词族答辩 ---------------- */
+function startQuiz() {
+  const f = curFamily();
+  const ws = f.words;
+  const qs = [];
+  const picks = shuffle(ws.map((_, i) => i)).slice(0, 4);
+  picks.forEach((wi, k) => {
+    const target = ws[wi];
+    const others = shuffle(ws.filter((x) => x.w !== target.w)).slice(0, 3);
+    if (k % 2 === 0) {
+      qs.push({
+        kind: "en2cn",
+        prompt: target.w,
+        answer: target.cn,
+        options: shuffle([target.cn].concat(others.map((o) => o.cn)))
+      });
+    } else {
+      qs.push({
+        kind: "cn2en",
+        prompt: target.cn + "　" + target.pos,
+        answer: target.w,
+        options: shuffle([target.w].concat(others.map((o) => o.w)))
+      });
+    }
+  });
+  S.quiz = qs; S.quizIdx = 0; S.quizRight = 0;
+  show("quiz");
+  renderQuiz();
+}
+
+function renderQuiz() {
+  const q = S.quiz[S.quizIdx];
+  S.answered = false;
+  $("quiz-prog").textContent = (S.quizIdx + 1) + " / " + S.quiz.length;
+  const box = $("quiz-q");
+  if (q.kind === "en2cn") {
+    box.innerHTML = "<small>这个词是什么意思？</small><span class='en'>" + q.prompt + "</span>";
+  } else {
+    box.innerHTML = "<small>这个意思对应哪个词？</small>" + q.prompt;
+  }
+  const opts = $("quiz-opts");
+  opts.innerHTML = "";
+  q.options.forEach((o, i) => {
+    const b = document.createElement("button");
+    b.className = "opt";
+    b.innerHTML = '<span class="idx">' + (i + 1) + "</span><span class='" + (q.kind === "cn2en" ? "en" : "") + "'>" + o + "</span>";
+    b.addEventListener("click", () => answerQuiz(b, o));
+    opts.appendChild(b);
+  });
+}
+
+function answerQuiz(btn, choice) {
+  if (S.answered) return;
+  S.answered = true;
+  ensureAudio();
+  const q = S.quiz[S.quizIdx];
+  const ok = choice === q.answer;
+  const all = $("quiz-opts").querySelectorAll(".opt");
+  all.forEach((el) => {
+    el.classList.add("done");
+    if (el.textContent.trim().slice(1).trim() === q.answer) el.classList.add("right");
+  });
+  if (ok) {
+    S.quizRight += 1;
+    sfx.ok();
+  } else {
+    btn.classList.add("wrong");
+    sfx.err();
+  }
+  setTimeout(() => {
+    S.quizIdx += 1;
+    if (S.quizIdx >= S.quiz.length) finishFamily();
+    else renderQuiz();
+  }, ok ? 620 : 1150);
+}
+
+/* ---------------- 结算 ---------------- */
+function finishFamily() {
+  const f = curFamily();
+  const total = S.score + S.quizRight * 50;
+  if (total > (save.best || 0)) { save.best = total; persist(); }
+  $("res-title").textContent = S.right === f.words.length ? "词族已成" : "词族初成";
+  $("res-lead").textContent = f.root + " ·「" + f.cn + "」一族";
+  $("res-score").textContent = total;
+  $("res-cast").textContent = S.right + " / " + f.words.length;
+  $("res-quiz").textContent = S.quizRight + " / " + S.quiz.length;
+  const nextBtn = $("btn-nextfam");
+  nextBtn.style.display = S.fi < FAMILIES.length - 1 ? "" : "none";
+  sfx.win();
+  show("result");
+}
+
+/* ---------------- 图鉴 ---------------- */
+function renderCodex() {
+  const grid = $("codex-grid");
+  grid.innerHTML = "";
+  FAMILIES.forEach((f) => {
+    const card = document.createElement("div");
+    card.className = "codex-card";
+    let html = '<div class="cr">' + f.root + "<em>" + f.cn + "</em></div><ul class='codex-list'>";
+    f.words.forEach((w) => {
+      const got = !!save.learned[w.w];
+      html +=
+        "<li class='" + (got ? "" : "locked") + "'>" +
+        "<span class='w'>" + (got ? w.w : "· · · · ·") + "</span>" +
+        "<span class='m'>" + (got ? w.cn : "未收录") + "</span></li>";
+    });
+    html += "</ul>";
+    card.innerHTML = html;
+    grid.appendChild(card);
+  });
+}
+
+/* ---------------- 粒子 ---------------- */
+function burst() {
+  const rect = $("slots").getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+  for (let i = 0; i < 16; i++) {
+    const p = document.createElement("span");
+    p.className = "spark";
+    p.style.left = cx + "px";
+    p.style.top = cy + "px";
+    document.body.appendChild(p);
+    const a = Math.random() * Math.PI * 2;
+    const d = 50 + Math.random() * 110;
+    p.animate(
+      [
+        { transform: "translate(-50%,-50%) scale(1)", opacity: 1 },
+        { transform: "translate(" + Math.cos(a) * d + "px," + Math.sin(a) * d + "px) scale(0)", opacity: 0 }
+      ],
+      { duration: 650 + Math.random() * 350, easing: "cubic-bezier(.2,.8,.3,1)" }
+    ).onfinish = () => p.remove();
+  }
+}
+
+/* ---------------- 事件绑定 ---------------- */
+$("btn-cast").addEventListener("click", cast);
+$("btn-clear").addEventListener("click", () => {
+  S.strip = [];
+  renderSlots(); renderTray();
+  $("forge-msg").textContent = "";
+});
+$("btn-next").addEventListener("click", () => { ensureAudio(); sfx.tap(); nextWord(); });
+$("btn-again").addEventListener("click", () => { ensureAudio(); startFamily(S.fi); });
+$("btn-nextfam").addEventListener("click", () => { ensureAudio(); startFamily(Math.min(S.fi + 1, FAMILIES.length - 1)); });
+$("btn-backhome").addEventListener("click", () => { ensureAudio(); renderHome(); show("home"); });
+
+let codexFrom = "home";
+$("btn-codex").addEventListener("click", () => {
+  ensureAudio();
+  const act = document.querySelector(".screen.active");
+  codexFrom = act ? act.id.replace("s-", "") : "home";
+  renderCodex();
+  show("codex");
+});
+$("btn-codex-back").addEventListener("click", () => {
+  if (codexFrom === "play") { show("play"); renderPlay(); }
+  else show(codexFrom === "codex" || !codexFrom ? "home" : codexFrom);
+});
+$("btn-sound").addEventListener("click", () => {
+  ensureAudio();
+  save.sound = !save.sound;
+  persist();
+  $("btn-sound").textContent = save.sound ? "♪ 开" : "♪ 关";
+  if (save.sound) sfx.tap();
+});
+
+document.addEventListener("keydown", (e) => {
+  const onPlay = $("s-play").classList.contains("active");
+  const onReveal = $("s-reveal").classList.contains("active");
+  const onQuiz = $("s-quiz").classList.contains("active");
+
+  if (e.key === "Enter") {
+    if (onPlay) { e.preventDefault(); cast(); }
+    else if (onReveal) { e.preventDefault(); ensureAudio(); nextWord(); }
+  }
+  if (e.key === "Backspace" && onPlay) {
+    e.preventDefault();
+    if (S.strip.length) removeAt(S.strip.length - 1);
+  }
+  if (onQuiz && /^[1-4]$/.test(e.key)) {
+    const btns = $("quiz-opts").querySelectorAll(".opt");
+    const b = btns[Number(e.key) - 1];
+    if (b && !S.answered) b.click();
+  }
+});
+
+/* ---------------- 启动 ---------------- */
+$("btn-sound").textContent = save.sound ? "♪ 开" : "♪ 关";
+renderHome();
+</script>
+</body>
+</html>
