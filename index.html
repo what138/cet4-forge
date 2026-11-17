@@ -176,6 +176,11 @@
   .target .meta { display: flex; gap: 8px; align-items: center; margin-top: 10px; }
   .tag { font-size: 11px; letter-spacing: .06em; padding: 3px 9px; border-radius: 99px; border: 1px solid var(--line); color: var(--dim); }
   .tag.pos { color: var(--gold); border-color: rgba(227,182,97,.35); }
+  .tag.lv {
+    display: none; color: #e08a7a; border-color: rgba(224,138,122,.45);
+    background: rgba(224,138,122,.08);
+  }
+  .tag.lv.on { display: inline-block; }
 
   .hearts { display: flex; gap: 7px; margin-top: 16px; align-items: center; }
   .heart { width: 15px; height: 15px; border-radius: 50%; border: 1.5px solid rgba(227,182,97,.55); box-shadow: inset 0 0 8px rgba(227,182,97,.35); transition: .3s; }
@@ -273,6 +278,12 @@
   }
   .wc-note.on { display: block; }
   .wc-cn { font-size: 19px; margin-top: 14px; color: var(--ink); }
+  .wc-lv {
+    display: none; margin-top: 10px; font-size: 12px; line-height: 1.75;
+    color: #e08a7a; background: rgba(224,138,122,.08);
+    border: 1px dashed rgba(224,138,122,.38); border-radius: 9px; padding: 8px 12px;
+  }
+  .wc-lv.on { display: block; }
   .wc-parts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
   .wcp { font-family: var(--font-en); font-size: 14px; color: var(--gold); border: 1px solid rgba(227,182,97,.32); border-radius: 8px; padding: 5px 10px; background: rgba(227,182,97,.07); }
   .wcp i { font-family: var(--font-ui); font-style: normal; font-size: 10.5px; color: var(--dim); margin-left: 6px; }
@@ -391,6 +402,7 @@
         <div class="meta">
           <span class="tag pos" id="target-pos">v.</span>
           <span class="tag" id="target-note">首字母 i</span>
+          <span class="tag lv" id="target-lv"></span>
         </div>
         <div class="hearts" id="hearts"></div>
       </div>
@@ -426,6 +438,7 @@
         <div class="wc-ipa" id="wc-ipa">/ɪnˈspekt/</div>
         <div class="wc-note" id="wc-note"></div>
         <div class="wc-cn" id="wc-cn">v. 检查，视察</div>
+        <div class="wc-lv" id="wc-lv"></div>
         <div class="wc-parts" id="wc-parts"></div>
         <div class="wc-memo" id="wc-memo"></div>
         <div class="wc-ex">
@@ -960,6 +973,15 @@ const FAMILIES = [
 ];
 // ===DATA-END===
 
+// 经 ECDICT 考试标签核对：这 12 个词不属于四级范围。
+// 保留它们是因为同属现有词族（spectator 属于 spect、inject 属于 ject），
+// 但必须标出来，不能冒充四级词。
+const LEVEL_NOTE = {
+  addict: "六级", contradict: "六级", detain: "六级", distract: "六级",
+  eject: "六级", extract: "六级", inject: "六级", spectator: "六级",
+  suppress: "六级", verdict: "六级", obstruct: "超纲", reconstruct: "超纲"
+};
+
 /* =================================================================
    状态与工具
    ================================================================= */
@@ -1071,6 +1093,10 @@ function renderPlay() {
   $("target-pos").textContent = w.pos;
   $("target-note").textContent = "首字母 " + w.w[0];
   $("wm-root").textContent = f.root;
+  const lvEl = $("target-lv");
+  const lv = LEVEL_NOTE[w.w];
+  if (lv) { lvEl.textContent = lv; lvEl.classList.add("on"); }
+  else { lvEl.textContent = ""; lvEl.classList.remove("on"); }
   $("family-note").innerHTML = "<b>" + f.root + "</b> 就是「" + f.cn + "」。　" + f.blurb;
   $("forge-msg").textContent = "";
   $("forge-msg").className = "forge-msg";
@@ -1215,6 +1241,12 @@ function revealCard(w, ok, gain) {
   if (w.note) { noteEl.textContent = w.note; noteEl.classList.add("on"); }
   else { noteEl.textContent = ""; noteEl.classList.remove("on"); }
   $("wc-cn").textContent = w.pos + " " + w.cn;
+  const lvBox = $("wc-lv");
+  const lvNote = LEVEL_NOTE[w.w];
+  if (lvNote) {
+    lvBox.textContent = "这是" + lvNote + "词，超出四级大纲——留在这里是因为它和同族词一起记更省力。";
+    lvBox.classList.add("on");
+  } else { lvBox.textContent = ""; lvBox.classList.remove("on"); }
 
   const parts = $("wc-parts");
   parts.innerHTML = "";
